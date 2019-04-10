@@ -6,6 +6,7 @@ import com.shark.feifei.Exception.QueryException;
 import com.shark.feifei.FeiFeiBootStrap;
 import com.shark.feifei.annoation.ForeignKey;
 import com.shark.feifei.annoation.OneToMany;
+import com.shark.feifei.consts.Status;
 import com.shark.feifei.consts.StatusCode;
 import com.shark.feifei.container.FeiFeiContainer;
 import com.shark.feifei.query.QueryCommon;
@@ -107,6 +108,12 @@ public class DefaultExecutor extends AbstractSqlExecutor {
                         if (StatusCode.class.isAssignableFrom(field.getType())){
                             int code= Integer.valueOf(fieldValue.toString());
                             fieldValue= ClassUtil.<StatusCode>newInstance(field.getType()).getStatus(code);
+                        }
+
+                        // 可能是字符串对应enum类
+                        if (Status.class.isAssignableFrom(field.getType())){
+                            String name=fieldValue.toString();
+                            fieldValue=ClassUtil.<Status>newInstance(field.getType()).getStatus(name);
                         }
 
                     } catch (SQLException e) {
