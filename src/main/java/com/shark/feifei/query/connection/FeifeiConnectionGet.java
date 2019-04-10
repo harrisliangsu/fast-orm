@@ -10,9 +10,7 @@ import com.shark.job.job.ScheduleJob;
 import com.shark.util.util.FileUtil;
 import com.shark.util.util.StringUtil;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 
@@ -34,18 +32,28 @@ public class FeifeiConnectionGet extends AbstractConnectionGet{
 	public void initDataSource(){
 		Properties properties= FileUtil.readProperties("/"+ FeifeiConfigConst.CONFIG_FILE_DEFAULT);
 		if (!properties.isEmpty()){
-			String url=(String) properties.get(FeifeiConfigConst.DB_URL);
-			String driver=(String) properties.get(FeifeiConfigConst.DB_DRIVER);
-			String username=(String) properties.get(FeifeiConfigConst.DB_USERNAME);
-			String password=(String) properties.get(FeifeiConfigConst.DB_PASSWORD);
-			String database=(String) properties.get(FeifeiConfigConst.DB_DATABASE);
-			int connectTimeout= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_TIMEOUT, FeifeiConfigDefault.DB_POOL_CONNECT_TIMEOUT);
-			int connectionMax= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_MAX, FeifeiConfigDefault.DB_POOL_CONNECTION_MAX);
-			int connectionInit= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_INIT, FeifeiConfigDefault.DB_POOL_CONNECTION_INIT);
-			int connectionIdleTime= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_IDLE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_IDLE_TIME);
-			int connectionAddNumOnceTime= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME);
-			TransactionScope scope= (TransactionScope) ConfigUtil.getOrDefault(properties, FeifeiConfigConst.DB_TRANSACTION_SCOPE, TransactionScope.QUERY);
+			Properties dbProperties=null;
+			// judge whether evn is multi or not
+			Object dbEnv=properties.get(FeifeiConfigConst.DB_ENV);
+			if (dbEnv==null){
+				dbProperties=properties;
+			}else {
+				String dbFileName=FeifeiConfigConst.CONFIG_DB_ENV.replace(FeifeiConfigConst.PLACEHOLDER,dbEnv.toString());
+				dbProperties=FileUtil.readProperties("/"+dbFileName);
+			}
 
+			String url=(String) dbProperties.get(FeifeiConfigConst.DB_URL);
+			String driver=(String) dbProperties.get(FeifeiConfigConst.DB_DRIVER);
+			String username=(String) dbProperties.get(FeifeiConfigConst.DB_USERNAME);
+			String password=(String) dbProperties.get(FeifeiConfigConst.DB_PASSWORD);
+			String database=(String) dbProperties.get(FeifeiConfigConst.DB_DATABASE);
+			int connectTimeout= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_TIMEOUT, FeifeiConfigDefault.DB_POOL_CONNECT_TIMEOUT);
+			int connectionMax= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_MAX, FeifeiConfigDefault.DB_POOL_CONNECTION_MAX);
+			int connectionInit= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_INIT, FeifeiConfigDefault.DB_POOL_CONNECTION_INIT);
+			int connectionIdleTime= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_IDLE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_IDLE_TIME);
+			int connectionAddNumOnceTime= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME);
+
+			TransactionScope scope= (TransactionScope) ConfigUtil.getOrDefault(dbProperties, FeifeiConfigConst.DB_TRANSACTION_SCOPE, TransactionScope.QUERY);
 			datasource=new FeifeiPoolDatasource(scope,connectionMax,connectionInit,connectionIdleTime,connectionAddNumOnceTime);
 			((FeifeiPoolDatasource)datasource).setUrl(url);
 			((FeifeiPoolDatasource)datasource).setDriver(driver);

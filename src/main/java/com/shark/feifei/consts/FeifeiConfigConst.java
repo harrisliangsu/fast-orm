@@ -7,7 +7,8 @@ package com.shark.feifei.consts;
  */
 public class FeifeiConfigConst {
     public static final String CONFIG_FILE_DEFAULT = "application.properties";
-    public static final String CONFIG_FILE_CHILD = "application-%s.properties";
+    public static final String CONFIG_DB_ENV = "db-%s.properties";
+    public static final String PLACEHOLDER ="%s";
 
     public static final String
             DB_URL = "db.url",
