@@ -6,7 +6,7 @@ import com.shark.feifei.Exception.QueryException;
 import com.shark.feifei.FeiFeiBootStrap;
 import com.shark.feifei.annoation.ForeignKey;
 import com.shark.feifei.annoation.OneToMany;
-import com.shark.feifei.annoation.PrimaryKey;
+import com.shark.feifei.consts.StatusCode;
 import com.shark.feifei.container.FeiFeiContainer;
 import com.shark.feifei.query.QueryCommon;
 import com.shark.feifei.query.config.QueryConfig;
@@ -19,6 +19,7 @@ import com.shark.feifei.query.entity.EntityUtil;
 import com.shark.feifei.query.query.AbstractQuery;
 import com.shark.feifei.query.query.EntityQuery;
 import com.shark.feifei.query.query.Query;
+import com.shark.util.classes.ClassUtil;
 import com.shark.util.util.MathUtil;
 import com.shark.util.util.NumberUtil;
 import com.shark.util.util.StringUtil;
@@ -100,6 +101,12 @@ public class DefaultExecutor extends AbstractSqlExecutor {
                             String primaryKeyFieldColumn = resultEntityInfo.getColumn(primaryKeyField.getName());
                             // 查询many表
                             fieldValue = QueryCommon.selectsByField(query.queryData().connection(), fieldName, Long.valueOf((String) resultSet.getObject(primaryKeyFieldColumn)), oneToMany.entity());
+                        }
+
+                        // 可能是数字对应enum类
+                        if (StatusCode.class.isAssignableFrom(field.getType())){
+                            int code= Integer.valueOf(fieldValue.toString());
+                            fieldValue= ClassUtil.<StatusCode>newInstance(field.getType()).getStatus(code);
                         }
 
                     } catch (SQLException e) {

@@ -1,4 +1,4 @@
-package com.shark.feifei.db;
+package com.shark.feifei.db.connection;
 
 import java.sql.Connection;
 import java.sql.SQLException;

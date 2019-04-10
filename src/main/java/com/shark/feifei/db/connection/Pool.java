@@ -1,4 +1,4 @@
-package com.shark.feifei.db;
+package com.shark.feifei.db.connection;
 
 /**
  * a pool for object(eg: THREAD poo,connection pool)

@@ -1,10 +1,9 @@
 package com.shark.feifei.db.cluster;
 
-import com.shark.feifei.db.FeifeiPoolDatasource;
+import com.shark.feifei.db.connection.FeifeiPoolDatasource;
 import com.shark.feifei.db.cluster.env.Env;
 
 import javax.sql.DataSource;
-import java.util.Map;
 
 public class ClusterDataSource extends FeifeiPoolDatasource{
     private Env env;

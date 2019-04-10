@@ -2,7 +2,7 @@ package com.shark.feifei.db.task;
 
 import com.shark.feifei.annoation.TaskClose;
 import com.shark.feifei.data.KeyString;
-import com.shark.feifei.db.FeifeiPoolDatasource;
+import com.shark.feifei.db.connection.FeifeiPoolDatasource;
 import com.shark.job.job.AbstractScheduleJob;
 import org.quartz.*;
 

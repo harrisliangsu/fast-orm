@@ -1,4 +1,4 @@
-package com.shark.feifei.db;
+package com.shark.feifei.db.connection;
 
 import org.slf4j.LoggerFactory;
 

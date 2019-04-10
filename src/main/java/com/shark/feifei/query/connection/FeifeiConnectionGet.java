@@ -4,7 +4,7 @@ package com.shark.feifei.query.connection;
 import com.shark.container.util.ConfigUtil;
 import com.shark.feifei.consts.FeifeiConfigConst;
 import com.shark.feifei.consts.FeifeiConfigDefault;
-import com.shark.feifei.db.FeifeiPoolDatasource;
+import com.shark.feifei.db.connection.FeifeiPoolDatasource;
 import com.shark.feifei.db.transaction.TransactionScope;
 import com.shark.job.job.ScheduleJob;
 import com.shark.util.util.FileUtil;

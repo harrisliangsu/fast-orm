@@ -1,4 +1,4 @@
-package com.shark.feifei.db;
+package com.shark.feifei.db.connection;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
