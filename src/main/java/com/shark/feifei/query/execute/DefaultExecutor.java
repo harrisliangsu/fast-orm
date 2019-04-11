@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.shark.feifei.Exception.QueryException;
 import com.shark.feifei.FeiFeiBootStrap;
 import com.shark.feifei.annoation.ForeignKey;
+import com.shark.feifei.annoation.Mask;
 import com.shark.feifei.annoation.OneToMany;
 import com.shark.feifei.consts.Status;
 import com.shark.feifei.consts.StatusCode;
@@ -21,6 +22,7 @@ import com.shark.feifei.query.query.AbstractQuery;
 import com.shark.feifei.query.query.EntityQuery;
 import com.shark.feifei.query.query.Query;
 import com.shark.util.classes.ClassUtil;
+import com.shark.util.util.MaskUtil;
 import com.shark.util.util.MathUtil;
 import com.shark.util.util.NumberUtil;
 import com.shark.util.util.StringUtil;
@@ -105,15 +107,30 @@ public class DefaultExecutor extends AbstractSqlExecutor {
                         }
 
                         // 可能是数字对应enum类
-                        if (StatusCode.class.isAssignableFrom(field.getType())){
-                            int code= Integer.valueOf(fieldValue.toString());
-                            fieldValue= ClassUtil.<StatusCode>newInstance(field.getType()).getStatus(code);
+                        if (StatusCode.class.isAssignableFrom(field.getType())) {
+                            int code = Integer.valueOf(fieldValue.toString());
+                            StatusCode firstStatusCode= (StatusCode) ClassUtil.getFirstEnum(field.getType());
+                            fieldValue = firstStatusCode.getStatus(code);
                         }
 
                         // 可能是字符串对应enum类
-                        if (Status.class.isAssignableFrom(field.getType())){
-                            String name=fieldValue.toString();
-                            fieldValue=ClassUtil.<Status>newInstance(field.getType()).getStatus(name);
+                        if (Status.class.isAssignableFrom(field.getType())) {
+                            String name = fieldValue.toString();
+                            Status firstStatus= (Status) ClassUtil.getFirstEnum(field.getType());
+                            fieldValue = firstStatus.getStatus(name);
+                        }
+
+                        // 可能是数字对应的List<Enum>
+                        Mask mask = field.getAnnotation(Mask.class);
+                        if (mask != null && List.class.isAssignableFrom(field.getType())) {
+                            List<Integer> trueBit= MaskUtil.split(Integer.valueOf(fieldValue.toString()));
+                            List<StatusCode> statusCodes=Lists.newArrayList();
+                            Class<StatusCode> enumClass= ClassUtil.getGenericClass(field);
+                            StatusCode firstStatusCode=ClassUtil.getFirstEnum(enumClass);
+                            for (Integer code : trueBit) {
+                                statusCodes.add(firstStatusCode.getStatus(code));
+                            }
+                            fieldValue=statusCodes;
                         }
 
                     } catch (SQLException e) {
