@@ -26,6 +26,10 @@ public class FeifeiConfigDefault {
 
 	public static final String DB_ENV="default";
 
+	public static final String
+			http_protocol_http="http",
+			http_protocol_https="https";
+
 	// transaction
 	public static final TransactionScope TRANSACTION_DEFAULT_SCOPE =TransactionScope.QUERY;
 }

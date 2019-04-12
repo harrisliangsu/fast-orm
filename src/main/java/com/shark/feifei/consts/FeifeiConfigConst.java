@@ -30,6 +30,11 @@ public class FeifeiConfigConst {
             DB_CLUSTER_ID="db.cluster.id",
             DB_CLUSTER_PARTITION_MANAGER="db.cluster.partition.manager";
 
+    public static final String
+            HTTP_DOMAIN_VIP="http.domain.vip",
+            HTTPS_DOMAIN_VIP="https.domain.vip",
+            HTTP_PROTOCOL="http.protocol";
+
     public static final String ENTITY_PACKAGE = "entity.package";
 
     public static final String DATABASE_TYPE = "queryConfig.databaseType";
