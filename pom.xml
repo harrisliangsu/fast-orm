@@ -5,7 +5,7 @@
     <parent>
         <artifactId>sharkchili-lib</artifactId>
         <groupId>com.fishbyby.sharkchili</groupId>
-        <version>1.0.7</version>
+        <version>1.0.8-SNAPSHOT</version>
         <relativePath>../sharkchili-lib/pom.xml</relativePath>
     </parent>
 
