@@ -16,6 +16,7 @@ Now,feifei could`t support all sql(like call desc(column)),you can query based o
 * [1.0.3](https://github.com/mmflys/sharkchili-feifei/blob/master/update/1.0.3-RELEASE.md)
 * [1.0.4](https://github.com/mmflys/sharkchili-feifei/blob/master/update/1.0.4-RELEASE.md)
 * [1.0.5](https://github.com/mmflys/sharkchili-feifei/blob/master/update/1.0.5-RELEASE.md)
+* [1.0.7](https://github.com/mmflys/sharkchili-feifei/blob/master/update/1.0.7-RELEASE.md)
 
 ## How to build
 
