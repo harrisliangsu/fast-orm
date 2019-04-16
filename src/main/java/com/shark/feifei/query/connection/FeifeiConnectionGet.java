@@ -32,7 +32,7 @@ public class FeifeiConnectionGet extends AbstractConnectionGet{
 	public void initDataSource(){
 		Properties properties= FileUtil.readProperties("/"+ FeifeiConfigConst.CONFIG_FILE_DEFAULT);
 		if (!properties.isEmpty()){
-			Properties dbProperties=null;
+			Properties dbProperties;
 			// judge whether evn is multi or not
 			Object dbEnv=properties.get(FeifeiConfigConst.DB_ENV);
 			if (dbEnv==null){
@@ -53,7 +53,7 @@ public class FeifeiConnectionGet extends AbstractConnectionGet{
 			int connectionIdleTime= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_IDLE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_IDLE_TIME);
 			int connectionAddNumOnceTime= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME);
 
-			TransactionScope scope= (TransactionScope) ConfigUtil.getOrDefault(dbProperties, FeifeiConfigConst.DB_TRANSACTION_SCOPE, TransactionScope.QUERY);
+			TransactionScope scope= (TransactionScope) ConfigUtil.getOrDefault(dbProperties, FeifeiConfigConst.DB_TRANSACTION_SCOPE, FeifeiConfigDefault.TRANSACTION_DEFAULT_SCOPE);
 			datasource=new FeifeiPoolDatasource(scope,connectionMax,connectionInit,connectionIdleTime,connectionAddNumOnceTime);
 			((FeifeiPoolDatasource)datasource).setUrl(url);
 			((FeifeiPoolDatasource)datasource).setDriver(driver);

@@ -17,19 +17,6 @@ public class FeifeiConfigDefault {
 			DB_POOL_CONNECTION_IDLE_TIME=5,
 			DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME=10;
 
-	// cluster default attributes
-	public static final boolean
-			DB_CLUSTER=false,
-			DB_CLUSTER_MASTER=false,
-			DB_CLUSTER_SLAVE=true,
-			DB_CLUSTER_PARTITION_MANAGER=false;
-
-	public static final String DB_ENV="default";
-
-	public static final String
-			http_protocol_http="http",
-			http_protocol_https="https";
-
 	// transaction
 	public static final TransactionScope TRANSACTION_DEFAULT_SCOPE =TransactionScope.QUERY;
 }
