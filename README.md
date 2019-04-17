@@ -17,7 +17,7 @@ Now,feifei could`t support all sql(like call desc(column)),you can query based o
 * [1.0.4](https://github.com/mmflys/sharkchili-feifei/blob/master/update/1.0.4-RELEASE.md)
 * [1.0.5](https://github.com/mmflys/sharkchili-feifei/blob/master/update/1.0.5-RELEASE.md)
 * [1.0.7](https://github.com/mmflys/sharkchili-feifei/blob/master/update/1.0.7-RELEASE.md)
-* [2.0.0]()
+* [2.0.1]()
 ## How to build
 
 * Latest stable [Oracle JDK 8](http://www.oracle.com/technetwork/java/)
@@ -32,7 +32,7 @@ Add this dependency to you pom.
     <dependency>
         <groupId>com.fishbyby.sharkchili</groupId>
         <artifactId>sharkchili-feifei</artifactId>
-        <version>1.0.5</version>
+        <version>2.0.1</version>
     </dependency>
     <!-- For latest version find maven address above -->
 ```
