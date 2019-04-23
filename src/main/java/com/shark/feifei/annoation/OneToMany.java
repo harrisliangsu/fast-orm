@@ -8,4 +8,5 @@ import java.lang.annotation.*;
 @Inherited
 public @interface OneToMany {
     Class entity() default Object.class;
+    String primaryKey() default "";
 }

@@ -120,7 +120,7 @@ public abstract class FeiFeiContainer implements Container {
 				LOGGER.debug("read entity package name {} from properties", entityPackage);
 				entityInfoGet.storage(entityPackage, queryConfig().getNameStyle(), queryConfig().getIgnore());
 			}else {
-				LOGGER.debug("custom had`t config entity package name,so scan from class path");
+				LOGGER.debug("customer had`t config entity package name,so scan from class path");
 				Predicate<Class> isEntity= c-> Entity.class.isAssignableFrom(c)&&!Modifier.isAbstract(c.getModifiers())&&c!=Entity.class;
 				Set<Class> entity= ClassScannerUtil.scanClassFromClassPath(p->!p.endsWith(".jar"), isEntity);
 				if (!entity.isEmpty()){
@@ -128,7 +128,7 @@ public abstract class FeiFeiContainer implements Container {
 				}
 			}
 		}else {
-			LOGGER.debug("custom had set entity package name {}", queryConfig().getEntityPackage());
+			LOGGER.debug("customer had set entity package name {}", queryConfig().getEntityPackage());
 			entityInfoGet.storage(queryConfig().getEntityPackage(), queryConfig().getNameStyle(), queryConfig().getIgnore());
 		}
 	}

@@ -2,6 +2,7 @@ package com.shark.feifei.query.execute;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.shark.feifei.Exception.EntityException;
 import com.shark.feifei.Exception.QueryException;
 import com.shark.feifei.Exception.SqlException;
 import com.shark.feifei.FeiFeiBootStrap;
@@ -67,100 +68,27 @@ public class DefaultExecutor extends AbstractSqlExecutor {
             ResultSet resultSet = statement.executeQuery();
 
             // 1.判断resultType是否为空 2.若空则取出ResultSet中的表名 3.返回map形式记录
-            EntityInfo resultEntityInfo = null;
-            if (query.queryData().getResultType() != null) {
-                resultEntityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(query.queryData().getResultType());
-            } else {
-                String tableName = resultSet.getMetaData().getTableName(3);
-                QueryConfig queryConfig = FeiFeiBootStrap.get().<FeiFeiContainer>container().queryConfig();
-                tableName = queryConfig.getNameStyle().tableToEntity(tableName, queryConfig.getIgnore());
-                resultEntityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(tableName);
-            }
+            EntityInfo resultEntityInfo = getEntityInfo(query, resultSet);
 
-            // 填充字段到对象
+            // 填充db值到对象
             while (resultSet.next()) if (resultEntityInfo != null) {
                 Object resultObject = resultEntityInfo.getClassInfo().newInstance();
                 // set值
                 for (Map.Entry<String, Field> entry : resultEntityInfo.getFieldInfo().entrySet()) {
                     String fieldName = entry.getKey();
                     Field field = entry.getValue();
-                    Object fieldValue = null;
+                    Object fieldValue;
                     // 结果集可能没有这个字段
                     try {
                         String columnName = resultEntityInfo.getColumn(fieldName);
                         fieldValue = resultSet.getObject(columnName);
-
-                        // 获取column value,可能是外键
-                        ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
-                        if (foreignKey != null&&fieldValue!=null) {
-                            // 查询外键表,赋值到字段
-                            fieldValue = QueryCommon.selectByPrimaryKey(query.queryData().connection(), Long.valueOf(fieldValue.toString()), foreignKey.entity());
-                        }
-
-                        // 可能是1对多关系
-                        OneToMany oneToMany = field.getAnnotation(OneToMany.class);
-                        if (oneToMany != null) {
-                            // 获取主键值
-                            Field primaryKeyField = EntityUtil.getPrimaryKeyField(resultEntityInfo);
-                            String primaryKeyFieldColumn = resultEntityInfo.getColumn(primaryKeyField.getName());
-                            // 查询many表
-                            fieldValue = QueryCommon.selectByField(query.queryData().connection(), fieldName, Long.valueOf((String) resultSet.getObject(primaryKeyFieldColumn)), oneToMany.entity());
-                        }
-
-                        // 可能是数字对应enum类
-                        if (StatusCode.class.isAssignableFrom(field.getType())) {
-                            int code = Integer.valueOf(fieldValue.toString());
-                            StatusCode firstStatusCode= (StatusCode) ClassUtil.getFirstEnum(field.getType());
-                            fieldValue = firstStatusCode.getStatus(code);
-                        }
-
-                        // 可能是字符串对应enum类
-                        if (Status.class.isAssignableFrom(field.getType())) {
-                            String name = fieldValue.toString();
-                            Status firstStatus= (Status) ClassUtil.getFirstEnum(field.getType());
-                            fieldValue = firstStatus.getStatus(name);
-                        }
-
-                        // 可能是数字对应的List<Enum>
-                        Mask mask = field.getAnnotation(Mask.class);
-                        if (mask != null && List.class.isAssignableFrom(field.getType())) {
-                            List<Integer> trueBit= MaskUtil.split(Integer.valueOf(fieldValue.toString()));
-                            List<StatusCode> statusCodes=Lists.newArrayList();
-                            Class<StatusCode> enumClass= ClassUtil.getGenericClass(field);
-                            StatusCode firstStatusCode=ClassUtil.getFirstEnum(enumClass);
-                            for (Integer code : trueBit) {
-                                statusCodes.add(firstStatusCode.getStatus(code));
-                            }
-                            fieldValue=statusCodes;
-                        }
-
+                        // 映射column value -> field value
+                        fieldValue = fieldValueMap(query, resultSet, resultEntityInfo, field, fieldValue);
                     } catch (SQLException e) {
                         continue;
                     }
-                    String methodSetName = EntityUtil.methodSet(fieldName);
-                    Method methodSet = resultEntityInfo.getMethodInfo().get(methodSetName);
-                    if (methodSet == null) {
-                        throw new QueryException("class {} haven`t set method", resultEntityInfo.getClassInfo());
-                    }
-                    try {
-                        methodSet.invoke(resultObject, fieldValue);
-                    }catch (IllegalArgumentException e) {
-                        // 判断是不是数字类型
-                        Class numberClass=methodSet.getParameterTypes()[0];
-                        if (Number.class.isAssignableFrom(numberClass)){
-                            try {
-                                // 调用参数为字符串的构造函数
-                                fieldValue=numberClass.getDeclaredConstructor(String.class).newInstance(fieldValue.toString());
-                                methodSet.invoke(resultObject, fieldValue);
-                            } catch (NoSuchMethodException ex) {
-                                ex.printStackTrace();
-                            }catch (InvocationTargetException e1){
-                                throw new SqlException("field: %s",fieldName);
-                            }
-                        }else {
-                            throw new SqlException(e.getMessage()+", field name: %s",fieldName);
-                        }
-                    }
+                    // 反射调用field set方法
+                    setFieldValue(resultEntityInfo, resultObject, fieldName, fieldValue);
                 }
                 resultList.add((T) resultObject);
             } else {
@@ -174,6 +102,127 @@ public class DefaultExecutor extends AbstractSqlExecutor {
             e.printStackTrace();
         }
         return resultList;
+    }
+
+    private Object fieldValueMap(Query query, ResultSet resultSet, EntityInfo resultEntityInfo, Field field, Object fieldValue) {
+        // 获取column value,可能是外键
+        fieldValue = foreignKeyMap(query, field, fieldValue);
+        // 可能是1对多关系
+        fieldValue = oneToManyMap(field, resultEntityInfo, query, fieldValue, resultSet);
+        // 可能是数字对应enum类
+        fieldValue = statusCodeMap(field, fieldValue);
+        // 可能是字符串对应enum类
+        fieldValue = statusMap(field, fieldValue);
+        // 可能是数字对应的List<Enum>
+        fieldValue = listMaskMap(field, fieldValue);
+        return fieldValue;
+    }
+
+    private EntityInfo getEntityInfo(Query query, ResultSet resultSet) throws SQLException {
+        EntityInfo resultEntityInfo;
+        if (query.queryData().getResultType() != null) {
+            resultEntityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(query.queryData().getResultType());
+        } else {
+            String tableName = resultSet.getMetaData().getTableName(3);
+            QueryConfig queryConfig = FeiFeiBootStrap.get().<FeiFeiContainer>container().queryConfig();
+            tableName = queryConfig.getNameStyle().tableToEntity(tableName, queryConfig.getIgnore());
+            resultEntityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(tableName);
+        }
+        return resultEntityInfo;
+    }
+
+    private void setFieldValue(EntityInfo resultEntityInfo, Object resultObject, String fieldName, Object fieldValue) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+        String methodSetName = EntityUtil.methodSet(fieldName);
+        Method methodSet = resultEntityInfo.getMethodInfo().get(methodSetName);
+        if (methodSet == null) {
+            throw new QueryException("class {} haven`t set method", resultEntityInfo.getClassInfo());
+        }
+        try {
+            methodSet.invoke(resultObject, fieldValue);
+        } catch (IllegalArgumentException e) {
+            // 判断是不是数字类型
+            Class numberClass = methodSet.getParameterTypes()[0];
+            if (Number.class.isAssignableFrom(numberClass)) {
+                try {
+                    // 调用参数为字符串的构造函数
+                    fieldValue = numberClass.getDeclaredConstructor(String.class).newInstance(fieldValue.toString());
+                    methodSet.invoke(resultObject, fieldValue);
+                } catch (NoSuchMethodException ex) {
+                    ex.printStackTrace();
+                } catch (InvocationTargetException e1) {
+                    throw new SqlException("field: %s", fieldName);
+                }
+            } else {
+                throw new SqlException(e.getMessage() + ", field name: %s", fieldName);
+            }
+        }
+    }
+
+    private Object oneToManyMap(Field field, EntityInfo resultEntityInfo, Query query, Object fieldValue, ResultSet resultSet) {
+        OneToMany oneToMany = field.getAnnotation(OneToMany.class);
+        if (oneToMany != null) {
+            // 获取主键值
+            Field primaryKeyField = EntityUtil.getPrimaryKeyField(resultEntityInfo);
+            if (primaryKeyField == null) {
+                throw new EntityException("Entity %s has no primary key", resultEntityInfo.getClassInfo());
+            }
+            String primaryKeyFieldColumn = resultEntityInfo.getColumn(primaryKeyField.getName());
+            try {
+                Long primaryKeyValue = Long.valueOf((String) resultSet.getObject(primaryKeyFieldColumn));
+                // 查询many表
+                fieldValue = QueryCommon.selectByField(query.queryData().connection(),
+                        oneToMany.primaryKey(),
+                        primaryKeyValue,
+                        oneToMany.entity());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return fieldValue;
+    }
+
+    private Object statusCodeMap(Field field, Object fieldValue) {
+        if (StatusCode.class.isAssignableFrom(field.getType())) {
+            int code = Integer.valueOf(fieldValue.toString());
+            StatusCode firstStatusCode = (StatusCode) ClassUtil.getFirstEnum(field.getType());
+            fieldValue = firstStatusCode.getStatus(code);
+        }
+        return fieldValue;
+    }
+
+    private Object statusMap(Field field, Object fieldValue) {
+        if (Status.class.isAssignableFrom(field.getType())) {
+            String name = fieldValue.toString();
+            Status firstStatus = (Status) ClassUtil.getFirstEnum(field.getType());
+            fieldValue = firstStatus.getStatus(name);
+        }
+        return fieldValue;
+    }
+
+    private Object listMaskMap(Field field, Object fieldValue) {
+        Mask mask = field.getAnnotation(Mask.class);
+        if (mask != null && List.class.isAssignableFrom(field.getType())) {
+            List<Integer> trueBit = MaskUtil.split(Integer.valueOf(fieldValue.toString()));
+            List<StatusCode> statusCodes = Lists.newArrayList();
+            Class<StatusCode> enumClass = ClassUtil.getGenericClass(field);
+            StatusCode firstStatusCode = ClassUtil.getFirstEnum(enumClass);
+            for (Integer code : trueBit) {
+                statusCodes.add(firstStatusCode.getStatus(code));
+            }
+            fieldValue = statusCodes;
+        }
+        return fieldValue;
+    }
+
+    private Object foreignKeyMap(Query query, Field field, Object fieldValue) {
+        ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
+        if (foreignKey != null && fieldValue != null) {
+            // 查询外键表,赋值到字段
+            fieldValue = QueryCommon.selectByPrimaryKey(query.queryData().connection(),
+                    Long.valueOf(fieldValue.toString()),
+                    foreignKey.entity());
+        }
+        return fieldValue;
     }
 
     /**
