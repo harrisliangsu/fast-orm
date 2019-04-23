@@ -77,7 +77,7 @@ public class EntityInfo {
             if (foreignKeyAnnotation != null) {
                 column = foreignKeyAnnotation.column();
             } else if (columnAnnotation != null) {
-                column = columnAnnotation.name();
+                column = StringUtil.isEmpty(columnAnnotation.name())?columnAnnotation.value():columnAnnotation.name();
             } else {
                 column = nameStyle.fieldToColumn(fieldName, ignore);
             }
@@ -90,7 +90,7 @@ public class EntityInfo {
         if (tableObj == null) {
             tableName = nameStyle.entityToTable(entity, ignore);
         } else {
-            tableName = ((Table) tableObj).name();
+            tableName = StringUtil.isEmpty(((Table) tableObj).name())?((Table) tableObj).value():((Table) tableObj).name();
         }
         // 存入表名.列明
         for (String field : entityMapTable.keySet()) {

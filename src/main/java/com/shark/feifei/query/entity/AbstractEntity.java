@@ -23,7 +23,7 @@ public abstract class AbstractEntity implements Entity{
 	 * @return a list of record
 	 */
 	public <T extends Entity> List<T> select(){
-		Query<T> query= EntityQuery.<T>create().addOption(QueryOptions.AUTO_FROM).select(this);
+		Query<T> query= EntityQuery.<T>create().setResultType((Class<T>) this.getClass()).addOption(QueryOptions.AUTO_FROM).select(this);
 		return query.query();
 	}
 
@@ -33,7 +33,7 @@ public abstract class AbstractEntity implements Entity{
 	 * @return a record
 	 */
 	public <T extends Entity> T selectSingle(){
-		Query<T> query= EntityQuery.<T>create().addOption(QueryOptions.AUTO_FROM).select(this);
+		Query<T> query= EntityQuery.<T>create().setResultType((Class<T>) this.getClass()).addOption(QueryOptions.AUTO_FROM).select(this);
 		return query.singleQuery();
 	}
 

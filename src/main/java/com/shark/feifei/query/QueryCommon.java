@@ -72,6 +72,16 @@ public class QueryCommon {
         return (List<T>) query.query();
     }
 
+    public static <T> T selectByPrimaryKey(Connection connection,Long fieldValue,Class entityClass){
+        Object condition = EntityUtil.getPrimaryKeyOrIdObject(entityClass,fieldValue.intValue());
+        return (T) EntityQuery.create()
+                .addOption(QueryOptions.AUTO_FROM)
+                .setConnection(connection)
+                .setResultType(entityClass)
+                .select((Entity) condition)
+                .singleQuery();
+    }
+
     private static Query getSelectByFieldQuery(Connection connection, String fieldName, Long fieldValue, Class entityClass) {
         Object condition = ClassUtil.newInstance(entityClass);
         EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entityClass);

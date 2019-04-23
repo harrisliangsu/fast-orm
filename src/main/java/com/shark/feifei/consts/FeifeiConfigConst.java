@@ -30,6 +30,9 @@ public class FeifeiConfigConst {
             DB_TRANSACTION_SCOPE = "db.transaction.scope",
             DB_ENV="db.env";
 
+    /**
+     * Config it in application.properties file or extend {@link com.shark.feifei.query.entity.AbstractEntity} it will be scanned automatically
+     */
     public static final String ENTITY_PACKAGE = "entity.package";
     public static final String DATABASE_TYPE = "queryConfig.databaseType";
     public static final String NAME_STYLE = "queryConfig.nameStyle";

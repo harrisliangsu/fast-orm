@@ -47,13 +47,13 @@ public class FeifeiConnectionGet extends AbstractConnectionGet{
 			String username=(String) dbProperties.get(FeifeiConfigConst.DB_USERNAME);
 			String password=(String) dbProperties.get(FeifeiConfigConst.DB_PASSWORD);
 			String database=(String) dbProperties.get(FeifeiConfigConst.DB_DATABASE);
-			int connectTimeout= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_TIMEOUT, FeifeiConfigDefault.DB_POOL_CONNECT_TIMEOUT);
-			int connectionMax= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_MAX, FeifeiConfigDefault.DB_POOL_CONNECTION_MAX);
-			int connectionInit= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_INIT, FeifeiConfigDefault.DB_POOL_CONNECTION_INIT);
-			int connectionIdleTime= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_IDLE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_IDLE_TIME);
-			int connectionAddNumOnceTime= getOrDefaultIntValue(dbProperties, FeifeiConfigConst.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME);
+			int connectTimeout= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_TIMEOUT, FeifeiConfigDefault.DB_POOL_CONNECT_TIMEOUT);
+			int connectionMax= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_MAX, FeifeiConfigDefault.DB_POOL_CONNECTION_MAX);
+			int connectionInit= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_INIT, FeifeiConfigDefault.DB_POOL_CONNECTION_INIT);
+			int connectionIdleTime= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_IDLE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_IDLE_TIME);
+			int connectionAddNumOnceTime= getOrDefaultIntValue(properties, FeifeiConfigConst.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME, FeifeiConfigDefault.DB_POOL_CONNECTION_ADD_NUM_ONCE_TIME);
 
-			TransactionScope scope= (TransactionScope) ConfigUtil.getOrDefault(dbProperties, FeifeiConfigConst.DB_TRANSACTION_SCOPE, FeifeiConfigDefault.TRANSACTION_DEFAULT_SCOPE);
+			TransactionScope scope= (TransactionScope) ConfigUtil.getOrDefault(properties, FeifeiConfigConst.DB_TRANSACTION_SCOPE, FeifeiConfigDefault.TRANSACTION_DEFAULT_SCOPE);
 			datasource=new FeifeiPoolDatasource(scope,connectionMax,connectionInit,connectionIdleTime,connectionAddNumOnceTime);
 			((FeifeiPoolDatasource)datasource).setUrl(url);
 			((FeifeiPoolDatasource)datasource).setDriver(driver);

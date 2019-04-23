@@ -207,6 +207,20 @@ public class EntityUtil {
 	}
 
 	/**
+	 * Get primary key [id] from entity.
+	 *
+	 * @param entity {@link Entity}
+	 * @return the "id" column
+	 */
+	public static Field getEntityId(Class entity) {
+		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
+		for (String fieldName : entityInfo.getFieldInfo().keySet()) {
+			if (fieldName.equals(Sql.PRIMARY_KEY_ID)) return entityInfo.getFieldInfo().get(fieldName);
+		}
+		return null;
+	}
+
+	/**
 	 * Get union primary keys from entity.
 	 *
 	 * @param entity {@link Entity}
@@ -229,6 +243,17 @@ public class EntityUtil {
 	 * @return the primary key of entity
 	 */
 	public static Field getPrimaryKey(Entity entity) {
+		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
+		return getPrimaryKeyField(entityInfo);
+	}
+
+	/**
+	 * Get primary key from entity.
+	 *
+	 * @param entity entity
+	 * @return the primary key of entity
+	 */
+	public static Field getPrimaryKey(Class entity) {
 		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
 		return getPrimaryKeyField(entityInfo);
 	}
@@ -478,6 +503,40 @@ public class EntityUtil {
 		}
 		if (idField == null) {
 			throw new QueryException("Entity class {} have no primary key or id", entity.getClass());
+		}
+
+		String idName = idField.getName();
+		if (entityInfo != null) {
+			// 调用 setId方法
+			String methodSetName = methodSet(idName);
+			Method methodSet = entityInfo.getMethodInfo().get(methodSetName);
+			try {
+				methodSet.invoke(idObject, id);
+				return (T) idObject;
+			} catch (IllegalAccessException | InvocationTargetException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get a object that only contain one field that is primary key.
+	 * @param entity {@link Entity}
+	 * @param id id column value
+	 * @param <T> entity type
+	 * @return a entity have only one field that is primary key
+	 */
+	public static <T> T getPrimaryKeyOrIdObject(Class entity, Integer id) {
+		Object idObject = ClassUtil.newInstance(entity);
+		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
+		//获取自增主键
+		Field idField = getEntityId(entity);
+		if (idField == null) {
+			idField = getPrimaryKey(entity);
+		}
+		if (idField == null) {
+			throw new QueryException("Entity class {} have no primary key or id", entity);
 		}
 
 		String idName = idField.getName();

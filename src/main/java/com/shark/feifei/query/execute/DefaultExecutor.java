@@ -3,6 +3,7 @@ package com.shark.feifei.query.execute;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.shark.feifei.Exception.QueryException;
+import com.shark.feifei.Exception.SqlException;
 import com.shark.feifei.FeiFeiBootStrap;
 import com.shark.feifei.annoation.ForeignKey;
 import com.shark.feifei.annoation.Mask;
@@ -70,7 +71,7 @@ public class DefaultExecutor extends AbstractSqlExecutor {
             if (query.queryData().getResultType() != null) {
                 resultEntityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(query.queryData().getResultType());
             } else {
-                String tableName = resultSet.getMetaData().getTableName(1);
+                String tableName = resultSet.getMetaData().getTableName(3);
                 QueryConfig queryConfig = FeiFeiBootStrap.get().<FeiFeiContainer>container().queryConfig();
                 tableName = queryConfig.getNameStyle().tableToEntity(tableName, queryConfig.getIgnore());
                 resultEntityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(tableName);
@@ -91,9 +92,9 @@ public class DefaultExecutor extends AbstractSqlExecutor {
 
                         // 获取column value,可能是外键
                         ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
-                        if (foreignKey != null) {
+                        if (foreignKey != null&&fieldValue!=null) {
                             // 查询外键表,赋值到字段
-                            fieldValue = QueryCommon.selectByField(query.queryData().connection(), fieldName, Long.valueOf(fieldValue.toString()), foreignKey.entity());
+                            fieldValue = QueryCommon.selectByPrimaryKey(query.queryData().connection(), Long.valueOf(fieldValue.toString()), foreignKey.entity());
                         }
 
                         // 可能是1对多关系
@@ -141,7 +142,25 @@ public class DefaultExecutor extends AbstractSqlExecutor {
                     if (methodSet == null) {
                         throw new QueryException("class {} haven`t set method", resultEntityInfo.getClassInfo());
                     }
-                    methodSet.invoke(resultObject, fieldValue);
+                    try {
+                        methodSet.invoke(resultObject, fieldValue);
+                    }catch (IllegalArgumentException e) {
+                        // 判断是不是数字类型
+                        Class numberClass=methodSet.getParameterTypes()[0];
+                        if (Number.class.isAssignableFrom(numberClass)){
+                            try {
+                                // 调用参数为字符串的构造函数
+                                fieldValue=numberClass.getDeclaredConstructor(String.class).newInstance(fieldValue.toString());
+                                methodSet.invoke(resultObject, fieldValue);
+                            } catch (NoSuchMethodException ex) {
+                                ex.printStackTrace();
+                            }catch (InvocationTargetException e1){
+                                throw new SqlException("field: %s",fieldName);
+                            }
+                        }else {
+                            throw new SqlException(e.getMessage()+", field name: %s",fieldName);
+                        }
+                    }
                 }
                 resultList.add((T) resultObject);
             } else {
@@ -150,7 +169,7 @@ public class DefaultExecutor extends AbstractSqlExecutor {
                 storageResultToMap(resultSet, recordMap);
                 resultList.add((T) recordMap);
             }
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | SQLException e) {
+        } catch (InstantiationException | IllegalAccessException | SQLException | InvocationTargetException e) {
             LOGGER(DefaultExecutor.class).error("sql: {}, parameters: {}", query.queryData().sql(), query.queryData().getParameters());
             e.printStackTrace();
         }
