@@ -247,9 +247,9 @@ public abstract class AbstractQuery<T> implements Query<T> {
 		if (returnUpdateId && this.queryData.sqlType == SqlType.UPDATE && this.queryData.operationType == OperationType.SINGLE_SQL) {
 			Entity entity = this.queryData.sqlEntity;
 			EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
-			Field field = EntityUtil.getEntityId(entity);
+			Field field = EntityUtil.getEntityId(entity.getClass());
 			if (field == null) {
-				field = EntityUtil.getPrimaryKey(entity);
+				field = EntityUtil.getPrimaryKey(entity.getClass());
 			}
 			if (field == null) {
 				throw new QueryException("Entity class {} have no primary key or id", entity.getClass());

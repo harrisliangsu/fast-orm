@@ -3,6 +3,7 @@ package com.shark.feifei.query.entity;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.shark.feifei.Exception.EntityException;
 import com.shark.feifei.Exception.QueryException;
 import com.shark.feifei.FeiFeiBootStrap;
 import com.shark.feifei.annoation.PrimaryKey;
@@ -136,7 +137,7 @@ public class EntityUtil {
 	public static Condition getEntityKeyCondition(Entity entity) {
 		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
 		Map<String, Object> notNullFields = EntityUtil.getNotNullField(entity);
-		List<String> entityKeys = getEntityKey(entity).stream().map(Field::getName).collect(Collectors.toList());
+		List<String> entityKeys = getEntityKey(entity.getClass()).stream().map(Field::getName).collect(Collectors.toList());
 		Object entityKeyObj = ClassUtil.newInstance(entity.getClass());
 		for (String fieldName : entityKeys) {
 			Method methodSet = entityInfo.getMethodInfo().get(EntityUtil.methodSet(fieldName));
@@ -162,7 +163,7 @@ public class EntityUtil {
 	 * @param entity {@link Entity}
 	 * @return a list of key column
 	 */
-	public static List<Field> getEntityKey(Entity entity) {
+	public static List<Field> getEntityKey(Class entity) {
 		List<Field> entityKeys = Lists.newArrayList();
 		Field primaryKey = getPrimaryKey(entity);
 		List<Field> unionPrimaryKeys = getUnionPrimaryKey(entity);
@@ -184,26 +185,12 @@ public class EntityUtil {
 		}
 
 		if (addNum == 0) {
-			throw new QueryException("Entity class {} have no id or primary key or union primary keys", entity.getClass());
+			throw new QueryException("Entity class {} have no id or primary key or union primary keys", entity);
 		}
 		if (addNum > 1&&!(entityId!=null&&primaryKey!=null)) {
-			throw new QueryException("Entity class {} can only have one key of {id and union primary keys,primary key,union primary keys}", entity.getClass());
+			throw new QueryException("Entity class {} can only have one key of {id and union primary keys,primary key,union primary keys}", entity);
 		}
 		return entityKeys;
-	}
-
-	/**
-	 * Get primary key [id] from entity.
-	 *
-	 * @param entity {@link Entity}
-	 * @return the "id" column
-	 */
-	public static Field getEntityId(Entity entity) {
-		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
-		for (String fieldName : entityInfo.getFieldInfo().keySet()) {
-			if (fieldName.equals(Sql.PRIMARY_KEY_ID)) return entityInfo.getFieldInfo().get(fieldName);
-		}
-		return null;
 	}
 
 	/**
@@ -226,7 +213,7 @@ public class EntityUtil {
 	 * @param entity {@link Entity}
 	 * @return the foreign key of entity
 	 */
-	public static List<Field> getUnionPrimaryKey(Entity entity) {
+	public static List<Field> getUnionPrimaryKey(Class entity) {
 		List<Field> unionPrimaryKeys = Lists.newArrayList();
 		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
 		for (Field field : entityInfo.getFieldInfo().values()) {
@@ -234,17 +221,6 @@ public class EntityUtil {
 			if (unionPrimaryKey != null) unionPrimaryKeys.add(field);
 		}
 		return unionPrimaryKeys;
-	}
-
-	/**
-	 * Get primary key from entity.
-	 *
-	 * @param entity entity
-	 * @return the primary key of entity
-	 */
-	public static Field getPrimaryKey(Entity entity) {
-		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
-		return getPrimaryKeyField(entityInfo);
 	}
 
 	/**
@@ -395,6 +371,9 @@ public class EntityUtil {
 	 */
 	private static Set<String> allTableFieldName(Entity entity) {
 		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
+		if (entityInfo==null){
+			throw new EntityException("Entity %s has no entity info",entity);
+		}
 		return entityInfo.getTableColumn().values();
 	}
 
@@ -484,40 +463,6 @@ public class EntityUtil {
 			names[i] = entityInfo.getTableName();
 		}
 		return names;
-	}
-
-	/**
-	 * Get a object that only contain one field that is primary key.
-	 * @param entity {@link Entity}
-	 * @param id id column value
-	 * @param <T> entity type
-	 * @return a entity have only one field that is primary key
-	 */
-	public static <T> T getPrimaryKeyOrIdObject(Entity entity, Integer id) {
-		Object idObject = ClassUtil.newInstance(entity.getClass());
-		EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity.getClass());
-		//获取自增主键
-		Field idField = getEntityId(entity);
-		if (idField == null) {
-			idField = getPrimaryKey(entity);
-		}
-		if (idField == null) {
-			throw new QueryException("Entity class {} have no primary key or id", entity.getClass());
-		}
-
-		String idName = idField.getName();
-		if (entityInfo != null) {
-			// 调用 setId方法
-			String methodSetName = methodSet(idName);
-			Method methodSet = entityInfo.getMethodInfo().get(methodSetName);
-			try {
-				methodSet.invoke(idObject, id);
-				return (T) idObject;
-			} catch (IllegalAccessException | InvocationTargetException e) {
-				e.printStackTrace();
-			}
-		}
-		return null;
 	}
 
 	/**

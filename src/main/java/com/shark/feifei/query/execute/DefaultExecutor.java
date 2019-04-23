@@ -104,7 +104,7 @@ public class DefaultExecutor extends AbstractSqlExecutor {
                             Field primaryKeyField = EntityUtil.getPrimaryKeyField(resultEntityInfo);
                             String primaryKeyFieldColumn = resultEntityInfo.getColumn(primaryKeyField.getName());
                             // 查询many表
-                            fieldValue = QueryCommon.selectsByField(query.queryData().connection(), fieldName, Long.valueOf((String) resultSet.getObject(primaryKeyFieldColumn)), oneToMany.entity());
+                            fieldValue = QueryCommon.selectByField(query.queryData().connection(), fieldName, Long.valueOf((String) resultSet.getObject(primaryKeyFieldColumn)), oneToMany.entity());
                         }
 
                         // 可能是数字对应enum类
@@ -362,7 +362,7 @@ public class DefaultExecutor extends AbstractSqlExecutor {
 
     private <T> void returnRecord(Query query, List<T> resultList, Long insertId) {
         Entity singleSqlEntity = query.queryData().getSqlEntity();
-        Entity idEntity = EntityUtil.getPrimaryKeyOrIdObject(singleSqlEntity, insertId.intValue());
+        Entity idEntity = EntityUtil.getPrimaryKeyOrIdObject(singleSqlEntity.getClass(), insertId.intValue());
 
         // 根据idEntity查询
         Query<T> queryIdEntity = EntityQuery.<T>create()

@@ -1,6 +1,7 @@
 package com.shark.feifei.query;
 
 
+import com.shark.feifei.Exception.SqlException;
 import com.shark.feifei.FeiFeiBootStrap;
 import com.shark.feifei.annoation.ForeignKey;
 import com.shark.feifei.container.FeiFeiContainer;
@@ -17,6 +18,7 @@ import com.shark.util.classes.ClassUtil;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -60,43 +62,51 @@ public class QueryCommon {
         return selectUpdateId.setConnection(connection).singleQuery();
     }
 
-    public static <T> T selectByField(Connection connection, String fieldName,Long fieldValue,Class entityClass) {
-        Query query = getSelectByFieldQuery(connection, fieldName, fieldValue, entityClass);
-
-        return (T) query.singleQuery();
-    }
-
-    public static <T> List<T> selectsByField(Connection connection, String fieldName, Long fieldValue, Class entityClass) {
-        Query query = getSelectByFieldQuery(connection, fieldName, fieldValue, entityClass);
-
-        return (List<T>) query.query();
-    }
-
-    public static <T> T selectByPrimaryKey(Connection connection,Long fieldValue,Class entityClass){
-        Object condition = EntityUtil.getPrimaryKeyOrIdObject(entityClass,fieldValue.intValue());
-        return (T) EntityQuery.create()
-                .addOption(QueryOptions.AUTO_FROM)
-                .setConnection(connection)
-                .setResultType(entityClass)
-                .select((Entity) condition)
-                .singleQuery();
-    }
-
-    private static Query getSelectByFieldQuery(Connection connection, String fieldName, Long fieldValue, Class entityClass) {
+    /**
+     * Execute query according to specified field
+     * @param connection connection
+     * @param fieldName field name from entity
+     * @param fieldValue field value from db
+     * @param entityClass class of entity
+     * @param <T> class of entity
+     * @return Result querying
+     */
+    public static <T> List<T> selectByField(Connection connection, String fieldName, Long fieldValue, Class<T> entityClass) {
         Object condition = ClassUtil.newInstance(entityClass);
         EntityInfo entityInfo = FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entityClass);
         String methodSetName = EntityUtil.methodSet(fieldName);
         Method methodSet = entityInfo.getMethodInfo().get(methodSetName);
+        if (methodSet==null){
+            throw new SqlException("Entity %s has no set method fro field %s",entityClass,fieldName);
+        }
         try {
             methodSet.invoke(condition, fieldValue);
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-
-        return EntityQuery.create()
+        return EntityQuery.<T>create()
                 .addOption(QueryOptions.AUTO_FROM)
                 .setConnection(connection)
                 .setResultType(entityClass)
-                .select((Entity) condition);
+                .select((Entity) condition)
+                .query();
+    }
+
+    /**
+     * Execute query according to specified primary key from entity
+     * @param connection connection
+     * @param fieldValue field value from db
+     * @param entityClass class of entity
+     * @param <T> class of entity
+     * @return Result querying
+     */
+    public static <T> T selectByPrimaryKey(Connection connection,Long fieldValue,Class<T> entityClass){
+        Object condition = EntityUtil.getPrimaryKeyOrIdObject(entityClass,fieldValue.intValue());
+        return EntityQuery.<T>create()
+                .addOption(QueryOptions.AUTO_FROM)
+                .setConnection(connection)
+                .setResultType(entityClass)
+                .select((Entity) condition)
+                .singleQuery();
     }
 }

@@ -341,7 +341,7 @@ public class EntityQuery<T> extends AbstractQuery<T> {
 		Map<String, Object> notNullField = EntityUtil.getNotNullField(entity);
 		if (!notNullField.isEmpty()) {
 			builder.append(Sql.WHERE).append(Sql.ONE_EQUAL_ONE);
-			List<String> entityKeyFieldName = EntityUtil.getEntityKey(entity).stream().map(Field::getName).collect(Collectors.toList());
+			List<String> entityKeyFieldName = EntityUtil.getEntityKey(entity.getClass()).stream().map(Field::getName).collect(Collectors.toList());
 			if (!entityKeyFieldName.isEmpty()) {
 				Map<String, Object> entityKeyValueMap = Maps.newHashMap();
 				entityKeyFieldName.forEach(e -> {
@@ -391,7 +391,7 @@ public class EntityQuery<T> extends AbstractQuery<T> {
 		Entity entity = (Entity) record;
 		EntityInfo entityInfo= FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
 		Map<String, Object> notNullFields = EntityUtil.getNotNullField(entity);
-		List<String> entityKeys = EntityUtil.getEntityKey(entity).stream().map(Field::getName).collect(Collectors.toList());
+		List<String> entityKeys = EntityUtil.getEntityKey(entity.getClass()).stream().map(Field::getName).collect(Collectors.toList());
 		// 生成前缀
 		mysql.append(Sql.UPDATE).append(entityInfo.getTableName()).append(Sql.SET);
 		// 添加属性
