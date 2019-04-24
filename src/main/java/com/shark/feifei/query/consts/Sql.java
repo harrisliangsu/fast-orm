@@ -32,7 +32,8 @@ public class Sql {
 			GROUP_BY=" GROUP BY ",ORDER_BY=" ORDER BY ", DESC=" DESC ", ASC=" ASC ",
 			COUNT=" COUNT ",SUM=" SUM ",AVG=" AVG ",MAX=" MAX ",MIN=" MIN ",
 			LIKE=" LIKE ",NOT_LIKE=" NOT LIKE ",REGEXP=" REGEXP ",
-			LIMIT=" LIMIT ";
+			LIMIT=" LIMIT ",
+			TOP=" TOP ";
 
 	/**update sql*/
 	public static final String

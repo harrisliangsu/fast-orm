@@ -19,63 +19,6 @@ import java.util.List;
 public interface Query<T> extends Cloneable{
 
 	/**
-	 * Release the connection.
-	 * @return this {@link Query}
- 	 */
-	Query<T> releaseConnection();
-	/**
-	 * Get a query key,if sql is same,the QueryKey is equal.
-	 * @return this {@link Query}
-	 */
-	QueryKey key();
-	/**
-	 * Set queryData.
-	 * @param queryData {@link QueryData}
-	 * @return this {@link Query}
-	 */
-	QueryData<T> setQueryData(QueryData<T> queryData);
-	/**
-	 * Query data.
-	 * @return this {@link Query}
-	 */
-	QueryData<T> queryData();
-	/**
-	 * <p>Set select result type</p>
-	 * <h3>It`s necessary to call this method when columns of select result from multi tables,otherwise the result is a map.</h3>
-	 * @param resultType the result type of record
-	 * @return this {@link Query}
-	 */
-	Query<T> setResultType(Class<T> resultType);
-
-	/**
-	 * Set sql executor.
-	 * @param executor {@link SqlExecutor}
-	 * @return this {@link Query}
-	 */
-	Query<T> setExecutor(SqlExecutor executor);
-
-	/**
-	 * Add option to query data.
-	 * @param options {@link QueryOptions}
-	 * @return this {@link Query}
-	 */
-	Query<T> addOption(QueryOptions... options);
-
-	/**
-	 * Set connection.
-	 * @param connection {@link Connection}
-	 * @return this {@link Query}
-	 */
-	Query<T> setConnection(Connection connection);
-
-	/**
-	 * Set flag whether query is nested or not.
-	 * @param nestedQuery true: need to execute other sql if execute this query,else false
-	 * @return this {@link Query}
-	 */
-	Query<T> setNestedQuery(boolean nestedQuery);
-
-	/**
 	 * Start query and get multi result.
 	 * @return a set of records
 	 */
@@ -306,10 +249,76 @@ public interface Query<T> extends Cloneable{
 	Query<T> update(Serializable... record);
 
 	/**
+	 * Query top n record
+	 * @param n count of record
+	 * @return this {@link Query}
+	 */
+	Query<T> top(int n);
+
+	//----------------------------------------------------Query data access------------------------------------------------------------//
+
+	/**
 	 * Update record according to column id.
 	 * 	if column id is`t exist,according to field from record.
 	 * @param record deleted
 	 * @return this {@link Query}
 	 */
 	Query<T> delete(Serializable... record);
+
+	/**
+	 * Release the connection.
+	 * @return this {@link Query}
+	 */
+	Query<T> releaseConnection();
+	/**
+	 * Get a query key,if sql is same,the QueryKey is equal.
+	 * @return this {@link Query}
+	 */
+	QueryKey key();
+	/**
+	 * Set queryData.
+	 * @param queryData {@link QueryData}
+	 * @return this {@link Query}
+	 */
+	QueryData<T> setQueryData(QueryData<T> queryData);
+	/**
+	 * Query data.
+	 * @return this {@link Query}
+	 */
+	QueryData<T> queryData();
+	/**
+	 * <p>Set select result type</p>
+	 * <h3>It`s necessary to call this method when columns of select result from multi tables,otherwise the result is a map.</h3>
+	 * @param resultType the result type of record
+	 * @return this {@link Query}
+	 */
+	Query<T> setResultType(Class<T> resultType);
+
+	/**
+	 * Set sql executor.
+	 * @param executor {@link SqlExecutor}
+	 * @return this {@link Query}
+	 */
+	Query<T> setExecutor(SqlExecutor executor);
+
+	/**
+	 * Add option to query data.
+	 * @param options {@link QueryOptions}
+	 * @return this {@link Query}
+	 */
+	Query<T> addOption(QueryOptions... options);
+
+	/**
+	 * Set connection.
+	 * @param connection {@link Connection}
+	 * @return this {@link Query}
+	 */
+	Query<T> setConnection(Connection connection);
+
+	/**
+	 * Set flag whether query is nested or not.
+	 * @param nestedQuery true: need to execute other sql if execute this query,else false
+	 * @return this {@link Query}
+	 */
+	Query<T> setNestedQuery(boolean nestedQuery);
 }

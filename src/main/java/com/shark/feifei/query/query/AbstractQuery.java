@@ -2,6 +2,7 @@ package com.shark.feifei.query.query;
 
 import com.google.common.collect.Lists;
 import com.shark.feifei.Exception.QueryException;
+import com.shark.feifei.Exception.SqlException;
 import com.shark.feifei.FeiFeiBootStrap;
 import com.shark.feifei.container.FeiFeiContainer;
 import com.shark.feifei.query.cache.config.CacheConfig;
@@ -505,6 +506,16 @@ public abstract class AbstractQuery<T> implements Query<T> {
 	@Override
 	public Query<T> addOption(QueryOptions... options) {
 		this.queryData.options.addAll(Arrays.asList(options));
+		return this;
+	}
+
+	@Override
+	public Query<T> top(int n) {
+		// 替换select -> TOP n
+		if (queryData.sqlType!=SqlType.SELECT){
+			throw new SqlException("sql type %s do not support top operation",queryData.sqlType);
+		}
+		this.queryData.sql.replace(0,Sql.SELECT.length(),Sql.SELECT+Sql.TOP+n+" ");
 		return this;
 	}
 

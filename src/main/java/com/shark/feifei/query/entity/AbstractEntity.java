@@ -23,7 +23,9 @@ public abstract class AbstractEntity implements Entity{
 	 * @return a list of record
 	 */
 	public <T extends Entity> List<T> select(){
-		Query<T> query= EntityQuery.<T>create().setResultType((Class<T>) this.getClass()).addOption(QueryOptions.AUTO_FROM).select(this);
+		Query<T> query= EntityQuery.<T>create()
+				.setResultType((Class<T>) this.getClass())
+				.addOption(QueryOptions.AUTO_FROM).select(this);
 		return query.query();
 	}
 
@@ -33,7 +35,9 @@ public abstract class AbstractEntity implements Entity{
 	 * @return a record
 	 */
 	public <T extends Entity> T selectSingle(){
-		Query<T> query= EntityQuery.<T>create().setResultType((Class<T>) this.getClass()).addOption(QueryOptions.AUTO_FROM).select(this);
+		Query<T> query= EntityQuery.<T>create()
+				.setResultType((Class<T>) this.getClass())
+				.addOption(QueryOptions.AUTO_FROM).select(this);
 		return query.singleQuery();
 	}
 
@@ -41,7 +45,9 @@ public abstract class AbstractEntity implements Entity{
 	 * Update this entity.
 	 */
 	public void update(){
-		Query query= EntityQuery.create().addOption(QueryOptions.UPDATE_OLD_RECORD).update(this);
+		Query query= EntityQuery.create()
+				.addOption(QueryOptions.UPDATE_OLD_RECORD)
+				.update(this);
 		query.query();
 	}
 
@@ -49,7 +55,9 @@ public abstract class AbstractEntity implements Entity{
 	 * Insert this object to table.
 	 */
 	public void insert(){
-		Query query= EntityQuery.create().addOption(QueryOptions.UPDATE_OLD_RECORD).insert(this);
+		Query query= EntityQuery.create()
+				.addOption(QueryOptions.UPDATE_OLD_RECORD)
+				.insert(this);
 		query.query();
 	}
 
@@ -72,7 +80,39 @@ public abstract class AbstractEntity implements Entity{
 	 */
 	public long count(){
 		Condition condition= EntityCondition.create(this);
-		Query<Long> query= EntityQuery.<Long>create().count(Sql.DIGIT_1).from(this.getClass()).where(condition);
+		Query<Long> query= EntityQuery.<Long>create()
+				.count(Sql.DIGIT_1)
+				.from(this.getClass())
+				.where(condition);
+		return query.singleQuery();
+	}
+
+	/**
+	 * Select records from table according to equal condition by this and return n records.
+	 * @param n count of result record.
+	 * @param <T> type of record
+	 * @return a list of record
+	 */
+	public <T extends Entity> List<T> top(int n){
+		Query<T> query= EntityQuery.<T>create()
+				.setResultType((Class<T>) this.getClass())
+				.addOption(QueryOptions.AUTO_FROM)
+				.select(this)
+				.top(n);
+		return query.query();
+	}
+
+	/**
+	 * Select top one record from table according to equal condition by this
+	 * @param <T> type of record
+	 * @return top one record
+	 */
+	public <T extends Entity> T firstTop(){
+		Query<T> query= EntityQuery.<T>create()
+				.setResultType((Class<T>) this.getClass())
+				.addOption(QueryOptions.AUTO_FROM)
+				.select(this)
+				.top(1);
 		return query.singleQuery();
 	}
 }

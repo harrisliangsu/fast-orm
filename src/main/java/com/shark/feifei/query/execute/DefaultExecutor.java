@@ -144,7 +144,7 @@ public class DefaultExecutor extends AbstractSqlExecutor {
             Class numberClass = methodSet.getParameterTypes()[0];
             if (Number.class.isAssignableFrom(numberClass)) {
                 try {
-                    // 调用参数为字符串的构造函数
+                    // 调用参数为字符串的数字型构造函数
                     fieldValue = numberClass.getDeclaredConstructor(String.class).newInstance(fieldValue.toString());
                     methodSet.invoke(resultObject, fieldValue);
                 } catch (NoSuchMethodException ex) {
