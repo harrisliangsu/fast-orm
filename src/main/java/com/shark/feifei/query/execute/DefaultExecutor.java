@@ -9,8 +9,6 @@ import com.shark.feifei.FeiFeiBootStrap;
 import com.shark.feifei.annoation.ForeignKey;
 import com.shark.feifei.annoation.Mask;
 import com.shark.feifei.annoation.OneToMany;
-import com.shark.feifei.consts.Status;
-import com.shark.feifei.consts.StatusCode;
 import com.shark.feifei.container.FeiFeiContainer;
 import com.shark.feifei.query.QueryCommon;
 import com.shark.feifei.query.config.QueryConfig;
@@ -28,6 +26,8 @@ import com.shark.util.util.MaskUtil;
 import com.shark.util.util.MathUtil;
 import com.shark.util.util.NumberUtil;
 import com.shark.util.util.StringUtil;
+import com.shark.util.util.enums.Status;
+import com.shark.util.util.enums.StatusCode;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -83,7 +83,7 @@ public class DefaultExecutor extends AbstractSqlExecutor {
                         String columnName = resultEntityInfo.getColumn(fieldName);
                         fieldValue = resultSet.getObject(columnName);
                         // 映射column value -> field value
-                        fieldValue = fieldValueMap(query, resultSet, resultEntityInfo, field, fieldValue);
+                        fieldValue = columValueMapToFieldValue(query, resultSet, resultEntityInfo, field, fieldValue);
                     } catch (SQLException e) {
                         continue;
                     }
@@ -104,14 +104,14 @@ public class DefaultExecutor extends AbstractSqlExecutor {
         return resultList;
     }
 
-    private Object fieldValueMap(Query query, ResultSet resultSet, EntityInfo resultEntityInfo, Field field, Object fieldValue) {
+    private Object columValueMapToFieldValue(Query query, ResultSet resultSet, EntityInfo resultEntityInfo, Field field, Object fieldValue) {
         // 获取column value,可能是外键
         fieldValue = foreignKeyMap(query, field, fieldValue);
         // 可能是1对多关系
         fieldValue = oneToManyMap(field, resultEntityInfo, query, fieldValue, resultSet);
-        // 可能是数字对应enum类
+        // 可能是数字对应enum类 StatusCode
         fieldValue = statusCodeMap(field, fieldValue);
-        // 可能是字符串对应enum类
+        // 可能是字符串对应enum类 Status
         fieldValue = statusMap(field, fieldValue);
         // 可能是数字对应的List<Enum>
         fieldValue = listMaskMap(field, fieldValue);
@@ -185,7 +185,7 @@ public class DefaultExecutor extends AbstractSqlExecutor {
         if (StatusCode.class.isAssignableFrom(field.getType())) {
             int code = Integer.valueOf(fieldValue.toString());
             StatusCode firstStatusCode = (StatusCode) ClassUtil.getFirstEnum(field.getType());
-            fieldValue = firstStatusCode.getStatus(code);
+            fieldValue = firstStatusCode.getStatusCode(code);
         }
         return fieldValue;
     }
@@ -207,7 +207,7 @@ public class DefaultExecutor extends AbstractSqlExecutor {
             Class<StatusCode> enumClass = ClassUtil.getGenericClass(field);
             StatusCode firstStatusCode = ClassUtil.getFirstEnum(enumClass);
             for (Integer code : trueBit) {
-                statusCodes.add(firstStatusCode.getStatus(code));
+                statusCodes.add(firstStatusCode.getStatusCode(code));
             }
             fieldValue = statusCodes;
         }

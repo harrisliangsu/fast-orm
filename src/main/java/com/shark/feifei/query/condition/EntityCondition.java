@@ -53,7 +53,7 @@ public class EntityCondition<T extends Entity, O extends Entity> extends Abstrac
 	private void equalCondition(Object origin) {
 		Entity entity = (Entity) origin;
 		EntityInfo entityInfo= FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get((Entity) origin);
-		Map<String, Object> field = EntityUtil.getNotNullField(entity);
+		Map<String, Object> field = EntityUtil.getNotNullFieldDb(entity);
 		// 只允许有一个条件字段
 		int object0Count=0;
 		String conditionColumn=null;

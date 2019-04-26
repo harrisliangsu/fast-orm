@@ -243,7 +243,7 @@ public class EntityQuery<T> extends AbstractQuery<T> {
 				for (Serializable record : records) {
 					Entity myEntity = (Entity) record;
 					// 获取非空字段
-					Map<String, Object> myNotNullField = EntityUtil.getNotNullField(myEntity);
+					Map<String, Object> myNotNullField = EntityUtil.getNotNullFieldDb(myEntity);
 					for (String column : notNullColumn) {
 						String fieldName=entityInfo.getField(column);
 						this.queryData.parameters.add(myNotNullField.get(fieldName));
@@ -259,7 +259,7 @@ public class EntityQuery<T> extends AbstractQuery<T> {
 					StringBuilder mySql = generateInsertSql(records[i]);
 					Entity entity = (Entity) records[i];
 					// 获取非空字段
-					Map<String, Object> notNullField = EntityUtil.getNotNullField(entity);
+					Map<String, Object> notNullField = EntityUtil.getNotNullFieldDb(entity);
 					this.queryData.parameters.addAll(notNullField.values());
 					SQls[i] = mySql.toString();
 				}
@@ -390,7 +390,7 @@ public class EntityQuery<T> extends AbstractQuery<T> {
 		StringBuilder mysql = new StringBuilder();
 		Entity entity = (Entity) record;
 		EntityInfo entityInfo= FeiFeiBootStrap.get().<FeiFeiContainer>container().getEntityInfoGet().get(entity);
-		Map<String, Object> notNullFields = EntityUtil.getNotNullField(entity);
+		Map<String, Object> notNullFields = EntityUtil.getNotNullFieldDb(entity);
 		List<String> entityKeys = EntityUtil.getEntityKey(entity.getClass()).stream().map(Field::getName).collect(Collectors.toList());
 		// 生成前缀
 		mysql.append(Sql.UPDATE).append(entityInfo.getTableName()).append(Sql.SET);
