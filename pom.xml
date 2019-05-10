@@ -5,10 +5,16 @@
     <parent>
         <artifactId>sharkchili-lib</artifactId>
         <groupId>com.fishbyby.sharkchili</groupId>
-        <version>2.0.2</version>
+        <version>2.0.3-SHAPSHOT</version>
         <relativePath>../sharkchili-lib/pom.xml</relativePath>
     </parent>
 
+    <modules>
+        <module>../sharkchili-util</module>
+        <module>../sharkchili-cache</module>
+        <module>../sharkchili-container</module>
+        <module>../sharkchili-job</module>
+    </modules>
 
     <modelVersion>4.0.0</modelVersion>
 
