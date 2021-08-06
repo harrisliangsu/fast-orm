@@ -1,8 +1,8 @@
-# sharkchili-feifei
+# fast-orm
 Feifei is a slight orm frame,almost zero configuration but could config any one include custom container,
 running in container based on original sql,supporting query based on object and string sql query.
 
-## Why developed feifei
+## Why developed fast-orm
 I want to query without any string include table,column name,because i check the spelling of letters always,
 and want to query with object directly but could query with sql string when i want,so i just do it.
 Now,feifei could`t support all sql(like call desc(column)),you can query based on original sql when you experience it.
